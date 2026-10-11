@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>💌 Kisah Kita — 10 Babak Perjalanan Hangat</title>
+  <meta name="description" content="Sebuah perjalanan interaktif yang lucu, hangat, dan bikin baper — khusus untukmu." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── AMBIENT CANVAS ── -->
+<canvas id="ambient-canvas"></canvas>
+
+<!-- ── MUSIC PILL ── -->
+<button id="music-pill" aria-label="Putar atau jeda musik">
+  <span class="disc-icon">♪</span>
+  <span id="music-label">Musik 🎵</span>
+</button>
+
+<!-- ── PROGRESS ── -->
+<div id="progress-bar-wrap" aria-label="Progres perjalanan">
+  <div class="step-dots" id="step-dots"></div>
+  <span id="step-label">1/10</span>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── AUDIO ── -->
+<audio id="bg-audio" loop preload="auto" src="assets/angelbaby.mp3"></audio>
+
+<!-- ═══════════════════════════════════════════
+     MAIN STAGE — 10 SCENES
+     ═══════════════════════════════════════════ -->
+<main id="stage">
+
+  <!-- ════════ SCENE 1: TOK TOK TOK 🚪 ════════ -->
+  <section class="scene active" id="scene-1" aria-label="Babak 1 Ketuk Pintu Misteri">
+    <div class="scene-emoji">🚪</div>
+    <h1 class="scene-title">Tok... Tok... Tok...</h1>
+    <p class="scene-sub">Ada seseorang yang baru datang buat nemenin hari-harimu.<br/>Buka pintunya dulu yuk? 🥺</p>
+
+    <!-- Door Visual -->
+    <div class="door-container" id="door-box" onclick="knockDoor()" title="Tok tok pintu yuk!">
+      <div class="door-frame" id="door-frame">
+        <div class="door-panel"></div>
+        <div class="door-knob"></div>
+      </div>
+      <div class="door-sticker" id="door-peek">👀</div>
+    </div>
+
+    <p id="knock-hint" class="scene-sub" style="font-size:0.82rem;color:#b06080;">Klik pintu buat ngetok 👆</p>
+
+    <!-- Slider (hidden first) -->
+    <div class="slider-wrap hidden" id="slider-section">
+      <p class="slider-label">Tarik slider ini sesuai seberapa besar kangenmu! 🫰</p>
+      <input type="range" id="kangen-slider" min="0" max="100" value="0"
+             oninput="updateSlider(this.value)"
+             aria-label="Slider level kangen"/>
+      <div id="kangen-val">0%</div>
+    </div>
+
+    <button class="btn-main hidden" id="btn-buka-pintu" onclick="nextScene()">
+      🚪 Buka Lebar Pintunya!
+    </button>
+  </section>
+
+  <!-- ════════ SCENE 2: SCANNER 🔍 ════════ -->
+  <section class="scene" id="scene-2" aria-label="Babak 2 Scanner Keimutan">
+    <div class="scene-emoji">🔍</div>
+    <h2 class="scene-title">Verifikasi Identitas</h2>
+    <p class="scene-sub">Sistem perlu memastikan kamu benar-benar manusia paling imut sedunia.</p>
+
+    <div class="fp-ring-wrap">
+      <button id="fp-btn" aria-label="Tahan tombol sidik jari" onmousedown="startScan()" ontouchstart="startScan()" onmouseup="stopScan()" ontouchend="stopScan()">
+        <span class="fp-icon">👆</span>
+        <span style="font-size:0.72rem;color:var(--rose-500)">Tahan</span>
+        <div class="scan-ring" id="scan-ring"></div>
+      </button>
+    </div>
+
+    <p class="scan-result" id="scan-result">Tahan tombol di atas selama 2 detik...</p>
+
+    <!-- Mood cards (hidden at start) -->
+    <div class="mood-cards hidden" id="mood-section">
+      <p style="font-size:0.88rem;color:var(--rose-700);font-weight:600;">Sekarang, lagi ngerasa gimana? 💭</p>
+      <div class="mood-card" id="mood-1" onclick="pickMood(1)" tabindex="0" role="button" aria-label="Pilih mood capek">
+        <span class="mood-icon">😴</span>
+        <span>Capek banget, fisik & pikiran</span>
+      </div>
+      <div class="mood-card" id="mood-2" onclick="pickMood(2)" tabindex="0" role="button" aria-label="Pilih mood sepi">
+        <span class="mood-icon">🌧️</span>
+        <span>Biasa aja sih, tapi agak sepi</span>
+      </div>
+      <div class="mood-card" id="mood-3" onclick="pickMood(3)" tabindex="0" role="button" aria-label="Pilih mood manja">
+        <span class="mood-icon">🥺</span>
+        <span>Lagi pengen dimanja & diperhatiin</span>
+      </div>
+    </div>
+
+    <div class="mood-response" id="mood-response"></div>
+    <button class="btn-main hidden" id="btn-mood-next" onclick="nextScene()">Lanjut yuk! →</button>
+  </section>
+
+  <!-- ════════ SCENE 3: STAR GAME ⭐ ════════ -->
+  <section class="scene" id="scene-3" aria-label="Babak 3 Tangkap Bintang">
+    <div class="scene-emoji">⭐</div>
+    <h2 class="scene-title">Tangkap 7 Bintang!</h2>
+    <p class="scene-sub">Di dalam setiap bintang ada satu kalimat spesial untukmu.<br/>Tap semua bintangnya ya!</p>
+
+    <div class="star-count" id="star-count">0 / 7 Bintang ⭐</div>
+    <canvas id="star-canvas" width="340" height="300" aria-label="Area permainan tangkap bintang"></canvas>
+    <div class="star-msg" id="star-msg">Tap bintang yang melayang... ✨</div>
+    <button class="btn-main hidden" id="btn-star-next" onclick="nextScene()">Waaah semua kutangkap! 🌟</button>
+  </section>
+
+  <!-- ════════ SCENE 4: SCRATCH CARDS 🎁 ════════ -->
+  <section class="scene" id="scene-4" aria-label="Babak 4 Scratch Card Kupon">
+    <div class="scene-emoji">🎁</div>
+    <h2 class="scene-title">Kotak P3K Emosional</h2>
+    <p class="scene-sub">Gosok 3 kartu misterius ini pakai jari atau mouse-mu! 💝</p>
+
+    <div class="scratch-cards-wrap">
+      <!-- Card 1 -->
+      <div class="scratch-card-item" id="card-1">
+        <div class="scratch-card-back">
+          <img src="assets/bearpeluk.gif" alt="Bear hug" width="54" height="54" style="border-radius:10px;flex-shrink:0;" loading="lazy"/>
+          <div>
+            <div style="font-size:0.78rem;color:var(--rose-500);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">Kupon Spesial #1</div>
+            <div>Pelukan Hangat Tanpa Batas Waktu 🤗</div>
+            <div style="font-size:0.78rem;font-weight:400;color:#9b7a88;margin-top:3px;">Berlaku: Selamanya & Kapanpun ✅</div>
+          </div>
+        </div>
+        <canvas class="scratch-canvas" id="scratch-canvas-1" width="340" height="90" aria-label="Gosok kartu 1"></canvas>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="scratch-card-item" id="card-2">
+        <div class="scratch-card-back">
+          <img src="assets/wortel.gif" alt="Wortel" width="54" height="54" style="border-radius:10px;flex-shrink:0;" loading="lazy"/>
+          <div>
+            <div style="font-size:0.78rem;color:var(--rose-500);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">Kupon Spesial #2</div>
+            <div>Ditraktir Jajan Kapanpun Sedih 🍦</div>
+            <div style="font-size:0.78rem;font-weight:400;color:#9b7a88;margin-top:3px;">Cukup bilang "lagi sedih" — langsung dieksekusi! ✅</div>
+          </div>
+        </div>
+        <canvas class="scratch-canvas" id="scratch-canvas-2" width="340" height="90" aria-label="Gosok kartu 2"></canvas>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="scratch-card-item" id="card-3">
+        <div class="scratch-card-back">
+          <img src="assets/pandapukpuk.gif" alt="Panda puk puk" width="54" height="54" style="border-radius:10px;flex-shrink:0;" loading="lazy"/>
+          <div>
+            <div style="font-size:0.78rem;color:var(--rose-500);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">Kupon Spesial #3</div>
+            <div>Bebas Ngambek 24 Jam Non-Stop 😤</div>
+            <div style="font-size:0.78rem;font-weight:400;color:#9b7a88;margin-top:3px;">Gabakal dimarahin, dijamin! ✅</div>
+          </div>
+        </div>
+        <canvas class="scratch-canvas" id="scratch-canvas-3" width="340" height="90" aria-label="Gosok kartu 3"></canvas>
+      </div>
+    </div>
+
+    <p id="scratch-status" style="font-size:0.85rem;color:var(--rose-600);font-weight:600;">Gosok semua kartu dulu yaa... 🪄</p>
+    <button class="btn-main hidden" id="btn-scratch-next" onclick="nextScene()">Wihh semua kudapat! 🎉</button>
+  </section>
+
+  <!-- ════════ SCENE 5: CASSETTE 📼 ════════ -->
+  <section class="scene" id="scene-5" aria-label="Babak 5 Kaset Kenangan">
+    <div class="scene-emoji">📼</div>
+    <h2 class="scene-title">Our Soundtrack</h2>
+    <p class="scene-sub">Ada satu lagu yang selalu mengingatkan tentang perasaan ini.<br/>Mau dengerin bareng? 🎶</p>
+
+    <div class="cassette" id="cassette-player">
+      <div class="cassette-label">
+        <div class="cassette-title">♡ Kisah Kita ♡</div>
+        <div class="cassette-sub">Side A — For You Only</div>
+      </div>
+      <div class="cassette-reels">
+        <div class="reel" id="reel-left"></div>
+        <div class="reel" id="reel-right"></div>
+      </div>
+      <div class="cassette-window">
+        <div class="cassette-wave" id="cass-wave">
+          <div class="wave-bar" style="--h:6px"></div>
+          <div class="wave-bar" style="--h:14px"></div>
+          <div class="wave-bar" style="--h:20px"></div>
+          <div class="wave-bar" style="--h:10px"></div>
+          <div class="wave-bar" style="--h:18px"></div>
+          <div class="wave-bar" style="--h:8px"></div>
+          <div class="wave-bar" style="--h:16px"></div>
+        </div>
+      </div>
+      <div class="cassette-controls">
+        <button class="cass-btn secondary" onclick="rewindCassette()" aria-label="Rewind">⏮</button>
+        <button class="cass-btn" id="play-cassette" onclick="toggleCassette()" aria-label="Play">▶</button>
+        <button class="cass-btn secondary" onclick="forwardCassette()" aria-label="Forward">⏭</button>
+      </div>
+    </div>
+
+    <p style="font-size:0.82rem;color:#9b6070;font-style:italic;max-width:280px;text-align:center;line-height:1.6;">
+      "Lagu ini khusus buat menemani hari-harimu yang penuh dengan hal-hal kecil yang berharga." 🎵
+    </p>
+    <img src="assets/gumush.gif" alt="Gumush stiker" class="sticker-sm" style="opacity:0.85;" loading="lazy"/>
+    <button class="btn-main" id="btn-cass-next" onclick="nextScene()">Lanjut ke kejutan berikutnya →</button>
+  </section>
+
+  <!-- ════════ SCENE 6: POLAROIDS 📸 ════════ -->
+  <section class="scene" id="scene-6" aria-label="Babak 6 Album Polaroid">
+    <div class="scene-emoji">📸</div>
+    <h2 class="scene-title">Album Polaroid Kenangan</h2>
+    <p class="scene-sub">Tap kartu polaroid ini untuk membuka foto-foto kenangan kita satu per satu. 🖼️</p>
+
+    <div class="polaroid-stack" id="polaroid-stack" onclick="flipPolaroid()" aria-label="Klik untuk buka foto berikutnya" role="button" tabindex="0">
+      <!-- Polaroid 4 (bawah) -->
+      <div class="polaroid" id="polar-4">
+        <img src="assets/mndkat.gif" alt="Mendekati" loading="lazy"/>
+        <div class="polaroid-cap">Waktu kita ngerasa saling butuh 🥹</div>
+      </div>
+      <!-- Polaroid 3 -->
+      <div class="polaroid" id="polar-3">
+        <img src="assets/gumush.gif" alt="Gumush" loading="lazy"/>
+        <div class="polaroid-cap">Waktu kamu gemes dan pura-pura galak 😤</div>
+      </div>
+      <!-- Polaroid 2 -->
+      <div class="polaroid" id="polar-2">
+        <img src="assets/cilukba.gif" alt="Cilukba" loading="lazy"/>
+        <div class="polaroid-cap">Tingkah lucumu yang bikin ketawa sendiri 😂</div>
+      </div>
+      <!-- Polaroid 1 (atas/current) -->
+      <div class="polaroid current" id="polar-1">
+        <img src="assets/fotbar.gif" alt="Foto bareng" loading="lazy"/>
+        <div class="polaroid-cap">Momen ngobrol hal random sampai larut ✨</div>
+      </div>
+    </div>
+
+    <div class="polaroid-counter" id="polar-counter">Foto 1 dari 4 — Tap buat lanjut</div>
+    <div id="polaroid-msg">Setiap momen bersamamu terasa sangat spesial. 💗</div>
+
+    <button class="btn-main hidden" id="btn-polar-next" onclick="nextScene()">Masih ada lagi nih! →</button>
+  </section>
+
+  <!-- ════════ SCENE 7: HUG METER 🫂 ════════ -->
+  <section class="scene" id="scene-7" aria-label="Babak 7 Pelukan Digital">
+    <div class="scene-emoji">🫂</div>
+    <h2 class="scene-title">Pelukan Digital</h2>
+    <p class="scene-sub">Tekan & tahan tombol di bawah selama 3 detik tanpa dilepas untuk ngirim pelukan! 🤗</p>
+
+    <div class="hug-ring" id="hug-ring"
+         onmousedown="startHug()" ontouchstart="startHug()"
+         onmouseup="stopHug()" ontouchend="stopHug()"
+         onmouseleave="stopHug()"
+         role="button" tabindex="0" aria-label="Tekan dan tahan untuk kirim pelukan">
+      <svg class="ring-svg" viewBox="0 0 160 160">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fb7185"/>
+            <stop offset="100%" style="stop-color:#ec4899"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="80" cy="80" r="70"/>
+        <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="70"/>
+      </svg>
+      <div class="hug-center">
+        <span class="hug-emoji" id="hug-emoji">🫂</span>
+        <span class="hug-pct" id="hug-pct">0%</span>
+        <span class="hug-label">TAHAN!</span>
+      </div>
+    </div>
+
+    <div class="hug-result" id="hug-result">
+      <img src="assets/bearpeluk.gif" alt="Pelukan beruang" class="sticker-lg" loading="lazy"/>
+      <p style="font-size:0.9rem;color:var(--rose-800);line-height:1.65;max-width:300px;">
+        <strong>Pelukan hangat berhasil terkirim! 💌</strong><br/>
+        Semoga terasa sampai ke hati ya. Jangan lupa napas yang dalam dan tenang. Kamu baik-baik aja. 🤍
+      </p>
+      <button class="btn-main" onclick="nextScene()">Makasih pelukannya! →</button>
+    </div>
+  </section>
+
+  <!-- ════════ SCENE 8: SURAT 💌 ════════ -->
+  <section class="scene" id="scene-8" aria-label="Babak 8 Surat dari Hati">
+    <div class="scene-emoji">💌</div>
+    <h2 class="scene-title">Surat dari Hati</h2>
+    <p class="scene-sub" id="letter-hint">Amplop sedang dibuka untukmu... 🥺</p>
+
+    <!-- Envelope Scene Wrapper -->
+    <div class="envelope-scene" id="envelope-scene">
+
+      <!-- LETTER SHEET: sits above envelope, initially hidden (max-height:0) -->
+      <div class="letter-sheet" id="letter-paper">
+        <div class="letter-inner">
+          <div class="letter-stamp">💌</div>
+          <div class="letter-head">Hai kamu... 💕</div>
+          <div id="letter-text"></div>
+          <div class="letter-sign" id="letter-sign"></div>
+        </div>
+      </div>
+
+      <!-- ENVELOPE BOX -->
+      <div class="envelope-box" id="envelope-box">
+        <!-- Top flap: CSS triangle pointing downward (closed state) -->
+        <div class="env-top-flap" id="env-flap"></div>
+        <!-- Envelope body -->
+        <div class="env-main-body">
+          <div class="env-left-tri"></div>
+          <div class="env-right-tri"></div>
+          <div class="env-seal" id="env-seal">💖</div>
+        </div>
+      </div>
+
+    </div><!-- /envelope-scene -->
+
+    <div style="display:flex;gap:12px;align-items:center;margin-top:16px;" id="letter-stickers" class="hidden">
+      <img src="assets/pusn.gif" alt="Pusn" class="sticker-sm" loading="lazy"/>
+      <img src="assets/muah.gif" alt="Muah" class="sticker-sm" loading="lazy"/>
+    </div>
+    <button class="btn-main hidden" id="btn-letter-next" onclick="nextScene()">Aku udah baca semuanya 🥹</button>
+  </section>
+
+
+  <!-- ════════ SCENE 9: TOMBOL KABUR 🏃 ════════ -->
+  <section class="scene" id="scene-9" aria-label="Babak 9 Pertanyaan Penentu">
+    <div class="scene-emoji">🏃‍♀️</div>
+    <h2 class="scene-title">Satu Pertanyaan Penting!</h2>
+
+    <img src="assets/cilukba.gif" alt="Cilukba" class="sticker" loading="lazy"/>
+
+    <div class="question-wrap">
+      <p class="question-txt">
+        Janji ya... kamu nggak akan pernah ngerasa sendirian lagi selama aku ada? <strong>Boleh kan aku terus nemenin kamu?</strong> 🥺🤍
+      </p>
+    </div>
+
+    <div style="position:relative;width:100%;display:flex;justify-content:center;margin-top:8px;">
+      <button class="btn-yes" id="btn-yes" onclick="answerYes()" aria-label="Iya boleh banget">
+        Iya, Boleh Banget! 🥺🤍
+      </button>
+    </div>
+
+    <div class="runaway-area" id="runaway-area" aria-hidden="true">
+      <div id="btn-no-wrap" style="left:80px;top:10px;">
+        <button class="btn-no" id="btn-no" aria-label="Tombol tidak">Nggak Mau 😜</button>
+      </div>
+      <div id="btn-no-taunt"></div>
+    </div>
+  </section>
+
+  <!-- ════════ SCENE 10: GRAND FINALE 🎆 ════════ -->
+  <section class="scene" id="scene-10" aria-label="Babak 10 Grand Finale">
+    <canvas id="finale-canvas" width="0" height="0"></canvas>
+
+    <div class="finale-card flex-col">
+      <div style="font-size:3.5rem;">🎉🤍🎆</div>
+      <div class="finale-title">Resmi Terdaftar!</div>
+      <p class="finale-sub">
+        Kamu sekarang resmi terdaftar sebagai <strong>Kesayangan Nomor Satu di Alam Semesta</strong>. Sertifikat ini berlaku selamanya dan tidak bisa dicabut! 🎓💗
+      </p>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:6px 0;">
+        <img src="assets/ciumin.gif" alt="Ciumin" class="sticker-sm" loading="lazy"/>
+        <img src="assets/bearpeluk.gif" alt="Pelukan" class="sticker-sm" loading="lazy"/>
+        <img src="assets/muah.gif" alt="Muah" class="sticker-sm" loading="lazy"/>
+      </div>
+
+      <p style="font-family:var(--font-hand);font-size:1.35rem;color:var(--rose-700);line-height:1.5;text-align:center;max-width:280px;">
+        "Terima kasih sudah hadir di dunia ini dan menjadi bagian dari cerita ini. 🤍"
+      </p>
+
+      <div class="flex-col" style="gap:10px;width:100%;max-width:260px;">
+        <a id="btn-wa" class="btn-wa" href="#" target="_blank" rel="noopener" aria-label="Kirim kabar via WhatsApp">
+          <span>💬</span> Kabarin Dia via WA
+        </a>
+        <button class="btn-repeat" onclick="restartJourney()" aria-label="Ulangi perjalanan">
+          🔄 Ulangi dari Awal
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
