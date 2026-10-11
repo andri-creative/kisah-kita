@@ -1097,9 +1097,10 @@ function initMusicPill() {
    WHATSAPP LINK
 ───────────────────────────────────────── */
 function setWALink() {
+  const phone = "6281249192305";
   const msg = encodeURIComponent("Hai! Aku udah buka web Kisah Kita sampai babak terakhir... ini lucu banget dan bikin baper haha 🥺🤍 Makasih yaa~");
   const btn = $('btn-wa');
-  if (btn) btn.href = `https://wa.me/?text=${msg}`;
+  if (btn) btn.href = `https://wa.me/${phone}?text=${msg}`;
 }
 
 /* ─────────────────────────────────────────
